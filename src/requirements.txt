@@ -16,9 +16,9 @@ blinker==1.6.2
 brotlipy==0.7.0
 cachetools==5.3.0
 celery==5.2.7
-certifi @ file:///croot/certifi_1683875369620/work/certifi
-cffi @ file:///croot/cffi_1670423208954/work
-charset-normalizer @ file:///tmp/build/80754af9/charset-normalizer_1630003229654/work
+certifi==2023.5.7
+cffi==1.15.1
+charset-normalizer==2.0.4
 click==8.1.3
 click-didyoumean==0.3.0
 click-plugins==1.1.1
@@ -27,7 +27,7 @@ cloudpickle==2.2.1
 colorama==0.4.6
 configobj==5.0.8
 contourpy==1.0.7
-cryptography @ file:///croot/cryptography_1677533068310/work
+cryptography==39.0.1
 cycler==0.11.0
 databricks-cli==0.17.7
 decorator==5.1.1
@@ -46,7 +46,7 @@ dvc-render==0.5.2
 dvc-studio-client==0.9.2
 dvc-task==0.2.1
 entrypoints==0.4
-filelock @ file:///croot/filelock_1672387128942/work
+filelock==3.9.0
 Flask==2.3.2
 flatten-dict==0.4.2
 flufl.lock==7.1.1
@@ -57,7 +57,7 @@ funcy==2.0
 future==0.18.3
 gitdb==4.0.10
 GitPython==3.1.31
-gmpy2 @ file:///tmp/build/80754af9/gmpy2_1645455533097/work
+gmpy2==2.1.2
 google-api-core==2.11.0
 google-api-python-client==2.86.0
 google-auth==2.18.1
@@ -70,11 +70,11 @@ grpcio==1.54.2
 gunicorn==20.1.0
 httplib2==0.22.0
 hydra-core==1.3.2
-idna @ file:///croot/idna_1666125576474/work
+idna==3.4
 importlib-metadata==6.6.0
 iterative-telemetry==0.0.8
 itsdangerous==2.1.2
-Jinja2 @ file:///croot/jinja2_1666908132255/work
+Jinja2==3.1.2
 joblib==1.2.0
 kiwisolver==1.4.4
 kombu==5.2.4
@@ -85,20 +85,20 @@ llvmlite==0.40.0
 Mako==1.2.4
 Markdown==3.4.3
 markdown-it-py==2.2.0
-MarkupSafe @ file:///opt/conda/conda-bld/markupsafe_1654597864307/work
+MarkupSafe==2.1.1
 matplotlib==3.7.1
 mdurl==0.1.2
 mkl-fft==1.3.6
-mkl-random @ file:///work/mkl/mkl_random_1682950433854/work
+mkl-random==1.2.2
 mkl-service==2.4.0
 mlflow==2.3.2
 mpmath==1.2.1
 msgpack==1.0.5
 multidict==6.0.4
 nanotime==0.5.2
-networkx @ file:///croot/networkx_1678964333703/work
+networkx==2.8.4
 numba==0.57.0
-numpy @ file:///work/mkl/numpy_and_numpy_base_1682953417311/work
+numpy==1.24.3
 oauth2client==4.1.3
 oauthlib==3.2.2
 omegaconf==2.3.0
@@ -109,6 +109,7 @@ packaging==23.1
 pandas==2.0.1
 pathspec==0.11.1
 Pillow==9.4.0
+pip==23.0.1
 platformdirs==3.5.1
 pooch==1.6.0
 prompt-toolkit==3.0.38
@@ -117,7 +118,7 @@ psutil==5.9.5
 pyarrow==11.0.0
 pyasn1==0.5.0
 pyasn1-modules==0.3.0
-pycparser @ file:///tmp/build/80754af9/pycparser_1636541352034/work
+pycparser==2.21
 pyDeprecate==0.3.1
 pydot==1.4.2
 PyDrive2==1.15.3
@@ -125,15 +126,15 @@ pygit2==1.12.1
 Pygments==2.15.1
 pygtrie==2.5.0
 PyJWT==2.7.0
-pyOpenSSL @ file:///croot/pyopenssl_1677607685877/work
+pyOpenSSL==23.0.0
 pyparsing==3.0.9
-PySocks @ file:///home/builder/ci_310/pysocks_1640793678128/work
+PySocks==1.7.1
 python-dateutil==2.8.2
 pytorch-lightning==1.5.6
 pytz==2023.3
 PyYAML==6.0
 querystring-parser==1.2.4
-requests @ file:///croot/requests_1682607517574/work
+requests==2.29.0
 requests-oauthlib==1.3.1
 rich==13.3.5
 rsa==4.9
@@ -142,6 +143,7 @@ ruamel.yaml.clib==0.2.7
 scikit-learn==1.2.2
 scipy==1.10.1
 scmrepo==1.0.3
+setuptools==66.0.0
 shortuuid==1.0.11
 shtab==1.6.1
 six==1.16.0
@@ -151,7 +153,7 @@ soxr==0.3.5
 SQLAlchemy==2.0.14
 sqlparse==0.4.4
 sqltrie==0.3.1
-sympy @ file:///croot/sympy_1668202399572/work
+sympy==1.11.1
 tabulate==0.9.0
 tensorboard==2.13.0
 tensorboard-data-server==0.7.0
@@ -165,15 +167,16 @@ torchsummary==1.5.1
 torchvision==0.15.2
 tqdm==4.65.0
 triton==2.0.0
-typing_extensions @ file:///croot/typing_extensions_1681939499988/work
+typing_extensions==4.5.0
 tzdata==2023.3
 uritemplate==4.1.1
-urllib3 @ file:///croot/urllib3_1680254681959/work
+urllib3==1.26.15
 vine==5.0.0
 voluptuous==0.13.1
 wcwidth==0.2.6
 websocket-client==1.5.1
 Werkzeug==2.3.4
+wheel==0.38.4
 yarl==1.9.2
 zc.lockfile==3.0.post1
 zipp==3.15.0
