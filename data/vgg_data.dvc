@@ -1,0 +1,5 @@
+outs:
+- md5: 4508ace3d40e6018c497a730f4cc0e87.dir
+  size: 22407955392
+  nfiles: 25150
+  path: vgg_data
