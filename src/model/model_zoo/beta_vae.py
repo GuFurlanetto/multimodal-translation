@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from model.base import BaseVAE
+from model.model_zoo.base import BaseVAE
 from torch import nn
 from torchsummary import summary
 from torch.nn import functional as F
@@ -55,13 +55,13 @@ class BetaVAE(BaseVAE):
             in_channels = h_dim
 
         self.encoder = nn.Sequential(*modules)
-        self.fc_mu = nn.Linear(hidden_dims[-1] * 4, latent_dim)
-        self.fc_var = nn.Linear(hidden_dims[-1] * 4, latent_dim)
+        self.fc_mu = nn.Linear(hidden_dims[-1] * 9, latent_dim)
+        self.fc_var = nn.Linear(hidden_dims[-1] * 9, latent_dim)
 
         # Build Decoder
         modules = []
 
-        self.decoder_input = nn.Linear(latent_dim, hidden_dims[-1] * 4)
+        self.decoder_input = nn.Linear(latent_dim, hidden_dims[-1] * 9)
 
         hidden_dims.reverse()
 
@@ -94,7 +94,7 @@ class BetaVAE(BaseVAE):
             ),
             nn.BatchNorm2d(hidden_dims[-1]),
             nn.LeakyReLU(),
-            nn.Conv2d(hidden_dims[-1], out_channels=3, kernel_size=3, padding=1),
+            nn.Conv2d(hidden_dims[-1], out_channels=1, kernel_size=3, padding=1),
             nn.Tanh(),
         )
 
@@ -117,9 +117,10 @@ class BetaVAE(BaseVAE):
 
     def decode(self, z: Tensor) -> Tensor:
         result = self.decoder_input(z)
-        result = result.view(-1, 512, 2, 2)
+        result = result.view(-1, 128, 3, 3)
         result = self.decoder(result)
         result = self.final_layer(result)
+
         return result
 
     def reparameterize(self, mu: Tensor, logvar: Tensor) -> Tensor:
@@ -137,17 +138,17 @@ class BetaVAE(BaseVAE):
     def forward(self, input: Tensor, **kwargs) -> Tensor:
         mu, log_var = self.encode(input)
         z = self.reparameterize(mu, log_var)
-        return [self.decode(z), input, mu, log_var]
+        return [self.decode(z), mu, log_var]
 
     def loss_function(self, *args, **kwargs) -> dict:
         self.num_iter += 1
         recons = args[0]
-        input = args[1]
-        mu = args[2]
-        log_var = args[3]
+        mu = args[1]
+        log_var = args[2]
         kld_weight = kwargs["M_N"]  # Account for the minibatch samples from the dataset
+        target = kwargs["target"]
 
-        recons_loss = F.mse_loss(recons, input)
+        recons_loss = F.mse_loss(recons, target)
 
         kld_loss = torch.mean(
             -0.5 * torch.sum(1 + log_var - mu**2 - log_var.exp(), dim=1), dim=0
@@ -156,7 +157,7 @@ class BetaVAE(BaseVAE):
         if self.loss_type == "H":  # https://openreview.net/forum?id=Sy2fzU9gl
             loss = recons_loss + self.beta * kld_weight * kld_loss
         elif self.loss_type == "B":  # https://arxiv.org/pdf/1804.03599.pdf
-            self.C_max = self.C_max.to(input.device)
+            self.C_max = self.C_max.to(target.device)
             C = torch.clamp(
                 self.C_max / self.C_stop_iter * self.num_iter, 0, self.C_max.data[0]
             )
