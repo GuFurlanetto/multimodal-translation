@@ -1,0 +1,5 @@
+outs:
+- md5: 2ec704bc72a286e3438cf65612ed73d0.dir
+  size: 50469474
+  nfiles: 12000
+  path: mnist_data

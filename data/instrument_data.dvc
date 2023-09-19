@@ -1,0 +1,5 @@
+outs:
+- md5: 5b341cbf2579d2885890e24183f9059a.dir
+  size: 8480757047
+  nfiles: 6616
+  path: instrument_data
