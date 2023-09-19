@@ -1,6 +1,7 @@
 import pytorch_lightning as pl
 import matplotlib.pyplot as plt
-from model.base import BaseVAE
+from model.model_zoo.base import BaseVAE
+from model.model_zoo import WAE_MMD, BetaVAE
 import torchvision.utils as vutils
 from torch import optim
 import os
@@ -8,20 +9,32 @@ from model.types_vae import *
 import librosa
 import torch
 import cv2
+import glob
+import shutil
+import tqdm
+import random
+import argparse
+from utils_io import make_video
+from train_utils.metrics import SSIM, MSE
 
 
 class VAEXperiment(pl.LightningModule):
-    def __init__(self, vae_model: BaseVAE, params: dict) -> None:
+    def __init__(self, vae_model: BaseVAE, params: dict, log_dir) -> None:
         super(VAEXperiment, self).__init__()
 
         self.model = vae_model
         self.params = params
         self.curr_device = None
         self.hold_graph = False
+        self.log_dir = log_dir
         try:
             self.hold_graph = self.params["retain_first_backpass"]
         except:
             pass
+
+        # metrics
+        self.ssim = SSIM()
+        self.mse = MSE()
 
     def forward(self, input: Tensor, **kwargs) -> Tensor:
         return self.model(input, **kwargs)
@@ -36,11 +49,15 @@ class VAEXperiment(pl.LightningModule):
             M_N=self.params["kld_weight"],  # al_img.shape[0]/ self.num_train_imgs,
             optimizer_idx=optimizer_idx,
             batch_idx=batch_idx,
+            target=labels,
         )
 
         self.log_dict(
             {key: val.item() for key, val in train_loss.items()}, sync_dist=True
         )
+
+        self.ssim(results, labels)
+        self.mse(results, labels)
 
         return train_loss["loss"]
 
@@ -54,6 +71,7 @@ class VAEXperiment(pl.LightningModule):
             M_N=1.0,  # real_img.shape[0]/ self.num_val_imgs,
             optimizer_idx=optimizer_idx,
             batch_idx=batch_idx,
+            target=labels,
         )
 
         self.log_dict(
@@ -62,6 +80,10 @@ class VAEXperiment(pl.LightningModule):
 
     def on_validation_end(self) -> None:
         self.sample_images()
+
+    def on_train_epoch_end(self) -> None:
+        self.log("train_ssim", self.ssim)
+        self.log("train_mse", self.mse)
 
     def sample_images(self):
         # Get sample reconstruction image
@@ -74,7 +96,7 @@ class VAEXperiment(pl.LightningModule):
         vutils.save_image(
             recons.data,
             os.path.join(
-                self.logger.log_dir,
+                self.log_dir,
                 "Reconstructions",
                 f"recons_{self.logger.name}_Epoch_{self.current_epoch}.png",
             ),
@@ -87,7 +109,7 @@ class VAEXperiment(pl.LightningModule):
             vutils.save_image(
                 samples.cpu().data,
                 os.path.join(
-                    self.logger.log_dir,
+                    self.log_dir,
                     "Samples",
                     f"{self.logger.name}_Epoch_{self.current_epoch}.png",
                 ),
@@ -184,3 +206,27 @@ def plot_spectrogram(specgram, title=None, ylabel="freq_bin"):
     im = axs.imshow(librosa.power_to_db(specgram), origin="lower", aspect="auto")
     fig.colorbar(im, ax=axs)
     plt.show(block=True)
+
+
+def load_model(config, args):
+    """
+    Load model from a different set of models
+
+    Args:
+        config -> Dict: Config file loaded
+
+        args -> argparse object: Arguments for training given from the command line
+
+    Return:
+        model -> model_class: Return model loaded with given configs
+    """
+
+    if args.model_name == "wae_mmd":
+        model = WAE_MMD(**config["model_params"])
+    elif args.model_name == "beta_wae":
+        model = BetaVAE(**config["model_params"])
+    else:
+        print(f"Model {args.model_name} doesn't exist")
+        exit()
+
+    return model

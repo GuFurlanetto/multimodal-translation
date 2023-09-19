@@ -1,6 +1,9 @@
 import cv2
 import json
 import os
+import glob
+import json
+import yaml
 
 
 def save_config(config, output_path):
@@ -37,7 +40,7 @@ def make_video(frames, output_folder, fps=30, color=False):
 
         fps -> Int: Number of frames per second
 
-        color -> Boolean:True if frames are RGB, defaults to False (gray scale)
+        color -> Boolean: True if frames are RGB, defaults to False (gray scale)
 
     """
     frame_size = frames[0].shape[:2]
@@ -56,7 +59,52 @@ def make_video(frames, output_folder, fps=30, color=False):
     video_writer.release()
 
 
-if __name__ == "__main__":
-    config = {"Nome": "Gustavo", "Idade": 22}
+def load_json(file):
+    """
+    Load a json file from path
 
-    save_config(config, "teste_folder")
+    Args:
+        file -> str: Path to the json file
+
+    Return:
+        json_file -> dict: Json file loaded
+
+
+    """
+    with open(file, "r") as f:
+        json_file = json.load(f)
+
+    return json_file
+
+
+def load_yaml(file):
+    """
+    Load a yaml file from path
+
+    Args:
+        file -> str: Path to the yaml file
+
+    Return:
+        yaml_file -> dict: Yaml file loaded
+
+
+    """
+
+    with open(file, "r") as f:
+        try:
+            config = yaml.safe_load(f)
+        except yaml.YAMLError as exc:
+            print(exc)
+
+    return config
+
+
+def save_eval(metrics, log_dir):
+    pass
+
+
+if __name__ == "__main__":
+    frames = glob.glob("logs/BetaVAE/version_0/Reconstructions/*")
+
+    frames = [cv2.imread(frame, cv2.IMREAD_GRAYSCALE) for frame in frames]
+    make_video(frames, "./", fps=5)
