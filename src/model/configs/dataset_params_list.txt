@@ -1,0 +1,59 @@
+------------ MNIST --------------
+model_params:
+  name: 'wae_mmd'
+  in_channels: 1
+  latent_dim: 128
+  hidden_dims: [32, 64, 128]
+  reg_weight: 1000
+  kernel_type: 'rbf'
+  hidden_multiplier: 9
+  last_layer_size: [3, 3]
+
+data_params:
+  data_path: "../../data/mnist_data"
+  mode: "audio2image"
+  train_batch_size: 32
+  val_batch_size: 32
+  patch_size: 32
+  num_workers: 8
+  data_class: MNISTMultimodal
+
+------------ VGG ----------------
+model_params:
+  name: 'wae_mmd'
+  in_channels: 1
+  latent_dim: 128
+  hidden_dims: [32, 64, 128, 256, 512]
+  reg_weight: 1000
+  kernel_type: 'rbf'
+  hidden_multiplier: 16
+  last_layer_size: [4, 4]
+
+data_params:
+  data_path: "../../data/vgg_data"
+  mode: "audio2image"
+  train_batch_size: 32
+  val_batch_size: 32
+  patch_size: 32
+  num_workers: 8
+  data_class: ImageAudioPairDatset
+
+------------ Instruments ----------------
+model_params:
+  name: 'wae_mmd'
+  in_channels: 1
+  latent_dim: 128
+  hidden_dims: [32, 64, 128, 256, 512]
+  reg_weight: 1000
+  kernel_type: 'rbf'
+  hidden_multiplier: 16
+  last_layer_size: [4, 4]
+
+data_params:
+  data_path: "../../data/instrument_data"
+  mode: "audio2image"
+  train_batch_size: 16
+  val_batch_size: 16
+  patch_size: 32
+  num_workers: 8
+  data_class: InstrumentDataset
