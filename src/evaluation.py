@@ -32,7 +32,7 @@ def eval(args):
     print(f"[ INFO ] Dataset loaded")
 
     # Loading model
-    print("[ INFO ] Loadin model ...")
+    print("[ INFO ] Loading model ...")
     model = load_model(config_file, args).to(device)
     checkpoint = torch.load(args.weights_path)
 
@@ -63,7 +63,7 @@ def eval(args):
 
         metrics["mse"].extend([mse(img1, img2) for img1, img2 in zip(predicts, target)])
 
-    print("[ INFO ] Evaluation matched")
+    print("[ INFO ] Evaluation finished")
 
     # Print and save results
     s = datetime.now()

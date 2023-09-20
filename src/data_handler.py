@@ -63,7 +63,7 @@ class InstrumentDataset(Dataset):
         if waveform.shape[1] > sample_rate:
             waveform = waveform[:, :240000]
         elif waveform.shape[1] < sample_rate:
-            pad = int(((sample_rate - waveform.shape[1]) / 2))
+            pad = int(((240000 - waveform.shape[1]) / 2))
 
         # Extract the mel Spectogram with 24 mel banks, it generates a  24x24 spec
         mel_transfomer = torchaudio.transforms.MelSpectrogram(
@@ -232,7 +232,7 @@ class MNISTMultimodal(Dataset):
         if waveform.shape[1] > sample_rate:
             waveform = waveform[:, :8000]
         elif waveform.shape[1] < sample_rate:
-            pad = int(((sample_rate - waveform.shape[1]) / 2))
+            pad = int(((8000 - waveform.shape[1]) / 2))
 
         # Extract the mel Spectogram with 24 mel banks, it generates a  24x24 spec
         mel_transfomer = torchaudio.transforms.MelSpectrogram(

@@ -13,7 +13,7 @@ import tqdm
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-def process_data(data, mode):
+def process_data(data, mode, image_size, sample_rate_data, n_mels, n_fft):
     """
     Process data to the format accepted by the model
 
@@ -28,7 +28,7 @@ def process_data(data, mode):
     if mode == "image2audio":
         for file in sorted(data):
             img_original = cv2.imread(file, cv2.IMREAD_GRAYSCALE)
-            image_final = cv2.resize(img_original, (24, 24)) / 255
+            image_final = cv2.resize(img_original, (image_size, image_size)) / 255
 
             yield torch.tensor(image_final, dtype=torch.float32).to(device).unsqueeze(
                 0
@@ -42,20 +42,20 @@ def process_data(data, mode):
                 waveform = torch.mean(waveform, dim=0).unsqueeze(0)
 
             # Standard sample at 8000
-            resampler = torchaudio.transforms.Resample(sample_rate, 8000)
+            resampler = torchaudio.transforms.Resample(sample_rate, sample_rate_data)
             waveform = resampler(waveform)
 
             # To make the audio spectogram be the same size as the image
             # here we cut or pad the audio when necessary
             pad = 0
-            if waveform.shape[1] >= 8000:
-                waveform = waveform[:, :8000]
+            if waveform.shape[1] >= sample_rate_data:
+                waveform = waveform[:, :sample_rate_data]
             elif waveform.shape[1] < sample_rate:
-                pad = int(((8000 - waveform.shape[1]) / 2))
+                pad = int(((sample_rate_data - waveform.shape[1]) / 2))
 
             # Extract the mel Spectogram with 24 mel banks, it generates a  24x24 spec
             mel_transfomer = torchaudio.transforms.MelSpectrogram(
-                sample_rate, n_mels=24, n_fft=664, pad=pad
+                sample_rate, n_mels=n_mels, n_fft=n_fft, pad=pad
             )
             mel_spec = mel_transfomer(waveform)[:, :, :-1]
 
@@ -72,14 +72,21 @@ def run_inference(args):
 
     # Load data
     print("[ INFO ] Loading data ...")
-    input_data = sorted(glob.glob(f"{args.inference_data}/*.jpg"))
+    input_data = sorted(glob.glob(f"{args.inference_data}/*"))
 
     # Load config
     with open(args.config, "r") as f:
         config = yaml.load(f)
 
     # Process data depending on format (image2audio or audio2image)
-    data = process_data(input_data, config["data_params"]["mode"])
+    data = process_data(
+        input_data,
+        config["data_params"]["mode"],
+        config["data_params"]["image_size"],
+        config["data_params"]["sample_rate"],
+        config["data_params"]["n_mels"],
+        config["data_params"]["n_fft"],
+    )
     print("[ INFO ] Data loaded")
 
     # Load model
@@ -101,13 +108,14 @@ def run_inference(args):
     os.makedirs(output_dir, exist_ok=True)
 
     print("[ INFO ] Running inference ...")
-    for idx, file in tqdm.tqdm(enumerate(data)):
+    for idx, (file, file_path) in tqdm.tqdm(enumerate(zip(data, input_data))):
         result = model(file)[0].cpu().detach().numpy().squeeze()
 
         # Unormalize result
         result = result * 255
+        file_name = os.path.basename(file_path)[:-4]
 
-        cv2.imwrite(f"{output_dir}/{idx + 1}.jpg", result)
+        cv2.imwrite(f"{output_dir}/{file_name}.png", result)
     print("[ INFO ] Inference complete")
 
 
