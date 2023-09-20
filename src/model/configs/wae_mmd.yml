@@ -10,7 +10,11 @@ model_params:
 
 data_params:
   data_path: "../../data/mnist_data"
-  mode: "image2audio"
+  mode: "audio2image"
+  image_size: 24
+  sample_rate: 8000
+  n_mels: 24
+  n_fft: 664
   train_batch_size: 32
   val_batch_size: 32
   patch_size: 32
