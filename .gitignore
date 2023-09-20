@@ -2,3 +2,4 @@
 logs
 output
 inference_data
+log_dir
