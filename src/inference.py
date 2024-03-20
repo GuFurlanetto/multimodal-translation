@@ -69,14 +69,16 @@ def run_inference(args):
     Args:
         args -> *args: Arguments from command line -> {dataset path, weights path, config path}
     """
-
-    # Load data
-    print("[ INFO ] Loading data ...")
-    input_data = sorted(glob.glob(f"{args.inference_data}/*"))
-
     # Load config
     with open(args.config, "r") as f:
         config = yaml.load(f)
+
+    # Load data
+    print("[ INFO ] Loading data ...")
+    if config["data_params"]["mode"] == "image2audio":
+        input_data = sorted(glob.glob(f"{args.inference_data}/*.jpg"))
+    else:
+        input_data = sorted(glob.glob(f"{args.inference_data}/*.wav"))
 
     # Process data depending on format (image2audio or audio2image)
     data = process_data(
@@ -115,7 +117,15 @@ def run_inference(args):
         result = result * 255
         file_name = os.path.basename(file_path)[:-4]
 
-        cv2.imwrite(f"{output_dir}/{file_name}.png", result)
+        if config["data_params"]["mode"] == "image2audio":
+            # Transform spectogram back to waveform
+            converter = torchaudio.transforms.InverseMelScale(
+                n_mels=config["data_params"]["n_mels"],
+                n_stft=config["data_params"]["n_fft"],
+            )
+            converter()
+        else:
+            cv2.imwrite(f"{output_dir}/{file_name}.png", result)
     print("[ INFO ] Inference complete")
 
 

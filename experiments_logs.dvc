@@ -1,0 +1,5 @@
+outs:
+- md5: 3b52f2954bf108048142ebf445ca5ebd.dir
+  size: 1326344
+  nfiles: 1102
+  path: experiments_logs

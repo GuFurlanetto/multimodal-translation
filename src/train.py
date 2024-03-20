@@ -16,6 +16,7 @@ import os
 from pathlib import Path
 from utils import load_model
 from utils_io import load_yaml
+from torchsummary import summary
 
 
 def train_model(training_arguments):
@@ -37,7 +38,7 @@ def train_model(training_arguments):
     print(f"[ INFO ] Loading model...")
     seed_everything(config["exp_params"]["manual_seed"], True)
 
-    model = load_model(config, args)
+    model = load_model(config, args).to("cuda")
     experiment = VAEXperiment(model, config["exp_params"], log_dir)
     print(f"[ INFO ] Model Loaded")
 
@@ -47,10 +48,11 @@ def train_model(training_arguments):
         **config["data_params"], pin_memory=len(config["trainer_params"]["gpus"]) != 0
     )
     print(f"[ INFO ] Dataset loaded")
-
+    summary(model, (1, 24, 24), batch_size=1, device="cuda")
     print(f"[ INFO ] Setting up pre training configs ...")
     data.setup()
     runner = Trainer(
+        accelerator="gpu",
         logger=mlflow_logger,
         callbacks=[
             LearningRateMonitor(),

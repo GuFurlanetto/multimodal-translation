@@ -1,0 +1,5 @@
+outs:
+- md5: 6d2dbc97e7e5bcbff84b3c31b6cddb16.dir
+  size: 85238944
+  nfiles: 117
+  path: last_model

@@ -1,0 +1,6 @@
+{
+    "exp_name": "Epoch_experiment",
+    "target_param": "epoch",
+    "path_on_config": ["trainer_params", "max_epochs"],
+    "param_values": [10, 20, 30, 40, 50, 100]
+}

@@ -3,3 +3,5 @@ logs
 output
 inference_data
 log_dir
+experiments_logs
+last_model

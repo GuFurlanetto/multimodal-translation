@@ -99,6 +99,28 @@ def load_yaml(file):
     return config
 
 
+def save_yaml(file, yaml_obj):
+    """
+    Save a yaml file from path
+
+    Args:
+        file -> str: Path to the yaml file
+
+        yaml_obj -> dict: Dict with the yaml content
+
+    Return:
+        success -> boll: Flag indicating success or failure
+    """
+
+    try:
+        yaml.dump(yaml_obj, open(file, "w"), indent=2)
+    except:
+        print("Failed to save the YAML file")
+        return False
+
+    return True
+
+
 def save_eval(metrics, log_dir):
     pass
 
