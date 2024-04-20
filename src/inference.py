@@ -2,6 +2,7 @@ import torch
 import numpy as np
 from model.model_zoo.beta_vae import BetaVAE
 from model.model_zoo.wae_mmd import WAE_MMD
+from utils import process_audio_results
 import cv2
 import torchaudio
 import argparse
@@ -71,7 +72,7 @@ def run_inference(args):
     """
     # Load config
     with open(args.config, "r") as f:
-        config = yaml.load(f)
+        config = yaml.safe_load(f)
 
     # Load data
     print("[ INFO ] Loading data ...")
@@ -114,16 +115,16 @@ def run_inference(args):
         result = model(file)[0].cpu().detach().numpy().squeeze()
 
         # Unormalize result
-        result = result * 255
+        # result = result * 255
         file_name = os.path.basename(file_path)[:-4]
 
         if config["data_params"]["mode"] == "image2audio":
             # Transform spectogram back to waveform
-            converter = torchaudio.transforms.InverseMelScale(
-                n_mels=config["data_params"]["n_mels"],
-                n_stft=config["data_params"]["n_fft"],
+            process_audio_results(
+                result,
+                f"{output_dir}/{file_name}.wav",
+                config["data_params"]["sample_rate"],
             )
-            converter()
         else:
             cv2.imwrite(f"{output_dir}/{file_name}.png", result)
     print("[ INFO ] Inference complete")

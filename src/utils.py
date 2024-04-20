@@ -8,14 +8,8 @@ import os
 from model.types_vae import *
 import librosa
 import torch
-import cv2
-import glob
-import shutil
-import tqdm
-import random
-import argparse
-from utils_io import make_video
 from train_utils.metrics import SSIM, MSE
+import soundfile as sf
 
 
 class VAEXperiment(pl.LightningModule):
@@ -230,3 +224,31 @@ def load_model(config, args):
         exit()
 
     return model
+
+
+def process_audio_results(generated_audio, output_file, sample_rate):
+    """
+    Takes the generated spectograms and produces a audio file at the output folder
+
+    Args:
+        generated_audios -> np.array: Spectogram
+
+        output_folder -> Str: Path to output folder
+
+    Return:
+        Status -> bool: True if process was completed with no errors
+    """
+
+    try:
+        # Invert the Mel spectrogram to the linear scale
+        linear_spectrogram = librosa.feature.inverse.mel_to_stft(generated_audio)
+
+        # Convert the linear spectrogram to audio
+        audio_signal = librosa.griffinlim(linear_spectrogram, hop_length=512)
+
+        # Save the audio to a file
+        sf.write(output_file, audio_signal, sample_rate, "PCM_24")
+
+        return True
+    except:
+        return False
