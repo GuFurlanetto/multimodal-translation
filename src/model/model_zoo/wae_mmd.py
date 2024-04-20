@@ -100,7 +100,7 @@ class WAE_MMD(BaseVAE):
             nn.BatchNorm2d(hidden_dims[-1]),
             nn.LeakyReLU(),
             nn.Conv2d(hidden_dims[-1], out_channels=1, kernel_size=3, padding=1),
-            nn.Tanh(),
+            nn.Sigmoid(),
         )
 
     def encode(self, input: Tensor) -> Tensor:
