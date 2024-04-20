@@ -1,0 +1,11 @@
+1 - Reformulate dataset
+    1.1 - Find more documents for the instruments dataset
+    1.2 - Increase MNIST image resolution 
+    1.3 - Try to keep image dimension on 256 x 256
+
+2 - Change audio input processing
+    2.1 - Check alternatives approaches
+
+3 - Train the classification model on Instrument dataset
+
+4 - Retrain both models on both modes
