@@ -1,20 +1,31 @@
+from collections import defaultdict
+from datetime import datetime
+import numpy as np
 import argparse
-import pytorch_lightning
-import model.model_zoo
-from utils_io import load_yaml, save_eval
-from utils import load_model
-from data_handler import VAEDataset
+import torch
+import tqdm
+import cv2
+import os
+
+from model.model_zoo.image_classification import VITforImageClassification
 from skimage.metrics import structural_similarity as ssim
 from skimage.metrics import mean_squared_error as mse
-import os
-import tqdm
-import torch
-from datetime import datetime
-import time
-import tqdm
-from collections import defaultdict
+from data_handler import VAEDataset
+from utils_io import load_yaml
+from utils import load_model
+
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
+def unormalize_batch_of_images(images):
+    images *= 255
+    images = np.expand_dims(images, 3)
+    final_images = np.array(
+        [cv2.cvtColor(image, cv2.COLOR_GRAY2RGB) for image in images]
+    ).astype(np.int32)
+
+    return final_images
 
 
 def eval(args):
@@ -42,6 +53,10 @@ def eval(args):
     model.eval()
     print("[ INFO ] Model loaded")
 
+    # Load image classification model
+    if config_file["data_params"]["mode"] == "audio2image":
+        classification_model = VITforImageClassification()
+
     # Performs evaluation on test data
     print("[ INFO ] Running evaluation ...")
     metrics = defaultdict(lambda: [])
@@ -62,6 +77,28 @@ def eval(args):
         )
 
         metrics["mse"].extend([mse(img1, img2) for img1, img2 in zip(predicts, target)])
+
+        # Check classification model results
+        # Unormalize images
+        # predictions = unormalize_batch_of_images(predicts)
+        # targets_images = unormalize_batch_of_images(target)
+
+        # processed_inputs = classification_model.process_images(predictions)
+        # classification_results = classification_model.run_inference(
+        #     processed_inputs.to(device)
+        # )
+
+        # processed_inputs = classification_model.process_images(targets_images)
+        # target_classification_results = classification_model.run_inference(
+        #     processed_inputs.to(device)
+        # )
+
+        # difference_number = np.count_nonzero(
+        #     target_classification_results - classification_results
+        # )
+        # metrics["diff_in_acc"].extend(
+        #     [difference_number / target_classification_results.size]
+        # )
 
     print("[ INFO ] Evaluation finished")
 
