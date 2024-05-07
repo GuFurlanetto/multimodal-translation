@@ -124,6 +124,8 @@ def run_inference(args):
                 result,
                 f"{output_dir}/{file_name}.wav",
                 config["data_params"]["sample_rate"],
+                config["data_params"]["n_fft"],
+                config["data_params"]["hop_lenght"],
             )
         else:
             cv2.imwrite(f"{output_dir}/{file_name}.png", result)

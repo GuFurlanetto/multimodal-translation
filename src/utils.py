@@ -226,7 +226,7 @@ def load_model(config, args):
     return model
 
 
-def process_audio_results(generated_audio, output_file, sample_rate):
+def process_audio_results(generated_audio, output_file, sample_rate, n_fft, hop_lenght):
     """
     Takes the generated spectograms and produces a audio file at the output folder
 
@@ -241,10 +241,13 @@ def process_audio_results(generated_audio, output_file, sample_rate):
 
     try:
         # Invert the Mel spectrogram to the linear scale
-        linear_spectrogram = librosa.feature.inverse.mel_to_stft(generated_audio)
-
-        # Convert the linear spectrogram to audio
-        audio_signal = librosa.griffinlim(linear_spectrogram, hop_length=512)
+        audio_signal = librosa.feature.inverse.mel_to_audio(
+            generated_audio,
+            sr=sample_rate,
+            n_fft=n_fft,
+            hop_length=hop_lenght,
+            norm="slaney",
+        )
 
         # Save the audio to a file
         sf.write(output_file, audio_signal, sample_rate, "PCM_24")
