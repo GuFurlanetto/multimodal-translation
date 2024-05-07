@@ -48,7 +48,7 @@ def train_model(training_arguments):
         **config["data_params"], pin_memory=len(config["trainer_params"]["gpus"]) != 0
     )
     print(f"[ INFO ] Dataset loaded")
-    summary(model, (1, 24, 24), batch_size=1, device="cuda")
+    summary(model, (1, 128, 128), batch_size=1, device="cuda")
     print(f"[ INFO ] Setting up pre training configs ...")
     data.setup()
     runner = Trainer(

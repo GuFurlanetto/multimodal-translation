@@ -3,7 +3,7 @@ from pytorch_lightning import LightningDataModule
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 from torchaudio import transforms as ta
-from utils import plot_waveform, plot_spectrogram
+from utils import plot_waveform, plot_spectrogram, process_audio_results
 from utils_io import make_video
 from torch import nn
 import numpy as np
@@ -14,6 +14,9 @@ import glob
 import cv2
 import yaml
 import tqdm
+import soundfile as sf
+
+import librosa
 
 
 class InstrumentDataset(Dataset):
@@ -217,37 +220,37 @@ class MNISTMultimodal(Dataset):
         # Get MNIST image example
         image = self.image_files[index]
         img_original = cv2.imread(image, cv2.IMREAD_GRAYSCALE)
-        image_final = cv2.resize(img_original, (24, 24)) / 255
+        image_final = cv2.resize(img_original, (128, 128)) / 255
 
-        # Process audio to the same image size
-        waveform, sample_rate = torchaudio.load(self.audio_files[index])
+        # Load audio and resample to 48000 Hz
+        waveform, sample_rate = librosa.load(self.audio_files[index], sr=48000)
 
-        # Standard sample at 8000
-        resampler = torchaudio.transforms.Resample(sample_rate, 8000)
-        waveform = resampler(waveform)
+        # Ensure waveform is 8000 samples long
+        if len(waveform) < 48000:
+            pad_width = 48000 - len(waveform)
+            waveform = np.pad(waveform, (0, pad_width))
+        elif len(waveform) > 48000:
+            waveform = waveform[:48000]
 
-        # To make the audio spectogram be the same size as the image
-        # here we cut or pad the audio when necessary
-        pad = 0
-        if waveform.shape[1] > sample_rate:
-            waveform = waveform[:, :8000]
-        elif waveform.shape[1] < sample_rate:
-            pad = int(((8000 - waveform.shape[1]) / 2))
-
-        # Extract the mel Spectogram with 24 mel banks, it generates a  24x24 spec
-        mel_transfomer = torchaudio.transforms.MelSpectrogram(
-            sample_rate, n_mels=24, n_fft=664, pad=pad
+        # Compute the Mel spectrogram with 128 mel bands, using a window of 2048 samples
+        mel_spectrogram = librosa.feature.melspectrogram(
+            y=waveform,
+            sr=sample_rate,
+            n_mels=128,
+            n_fft=1024,
+            hop_length=377,
+            norm="slaney",
         )
-        mel_spec = mel_transfomer(waveform)[:, :, :-1]
-        # mel_spec = torch.moveaxis(mel_spec, 0, 2)
 
         if self.mode == "image2audio":
             return (
                 torch.tensor(image_final, dtype=torch.float32).unsqueeze(0),
-                mel_spec.float(),
+                torch.tensor(mel_spectrogram, dtype=torch.float32).unsqueeze(0),
             )
         else:
-            return mel_spec, torch.tensor(image_final, dtype=torch.float32).unsqueeze(0)
+            return torch.tensor(mel_spectrogram, dtype=torch.float32).unsqueeze(
+                0
+            ), torch.tensor(image_final, dtype=torch.float32).unsqueeze(0)
 
 
 class VAEDataset(LightningDataModule):

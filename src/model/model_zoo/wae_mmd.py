@@ -59,7 +59,8 @@ class WAE_MMD(BaseVAE):
             in_channels = h_dim
 
         self.encoder = nn.Sequential(*modules)
-        self.fc_z = nn.Linear(hidden_dims[-1] * self.hidden_multiplier, latent_dim)
+        self.fc_mu = nn.Linear(hidden_dims[-1] * self.hidden_multiplier, latent_dim)
+        self.fc_var = nn.Linear(hidden_dims[-1] * self.hidden_multiplier, latent_dim)
 
         # Build Decoder
         modules = []
@@ -100,7 +101,7 @@ class WAE_MMD(BaseVAE):
             nn.BatchNorm2d(hidden_dims[-1]),
             nn.LeakyReLU(),
             nn.Conv2d(hidden_dims[-1], out_channels=1, kernel_size=3, padding=1),
-            nn.Sigmoid(),
+            nn.LeakyReLU(),
         )
 
     def encode(self, input: Tensor) -> Tensor:
@@ -115,9 +116,10 @@ class WAE_MMD(BaseVAE):
 
         # Split the result into mu and var components
         # of the latent Gaussian distribution
-        z = self.fc_z(result)
+        mu = self.fc_mu(result)
+        log_var = self.fc_var(result)
 
-        return z
+        return [mu, log_var]
 
     def decode(self, z: Tensor) -> Tensor:
         result = self.decoder_input(z)
@@ -128,25 +130,50 @@ class WAE_MMD(BaseVAE):
         result = self.final_layer(result)
         return result
 
+    def reparameterize(self, mu: Tensor, logvar: Tensor) -> Tensor:
+        """
+        Reparameterization trick to sample from N(mu, var) from
+        N(0,1).
+        :param mu: (Tensor) Mean of the latent Gaussian [B x D]
+        :param logvar: (Tensor) Standard deviation of the latent Gaussian [B x D]
+        :return: (Tensor) [B x D]
+        """
+        std = torch.exp(0.5 * logvar)
+        eps = torch.randn_like(std)
+        return eps * std + mu
+
     def forward(self, input: Tensor, **kwargs) -> List[Tensor]:
-        z = self.encode(input)
-        return [self.decode(z), z]
+        mu, log_var = self.encode(input)
+        z = self.reparameterize(mu, log_var)
+        return [self.decode(z), input, mu, log_var]
 
     def loss_function(self, *args, **kwargs) -> dict:
+        """
+        Computes the VAE loss function.
+        KL(N(\mu, \sigma), N(0, 1)) = \log \frac{1}{\sigma} + \frac{\sigma^2 + \mu^2}{2} - \frac{1}{2}
+        :param args:
+        :param kwargs:
+        :return:
+        """
         recons = args[0]
-        z = args[1]
+        input = args[1]
+        mu = args[2]
+        log_var = args[3]
         target = kwargs["target"]
 
-        batch_size = target.size(0)
-        bias_corr = batch_size * (batch_size - 1)
-        reg_weight = self.reg_weight / bias_corr
-
+        kld_weight = kwargs["M_N"]  # Account for the minibatch samples from the dataset
         recons_loss = F.mse_loss(recons, target)
 
-        mmd_loss = self.compute_mmd(z, reg_weight)
+        kld_loss = torch.mean(
+            -0.5 * torch.sum(1 + log_var - mu**2 - log_var.exp(), dim=1), dim=0
+        )
 
-        loss = recons_loss + mmd_loss
-        return {"loss": loss, "Reconstruction_Loss": recons_loss, "MMD": mmd_loss}
+        loss = recons_loss + kld_weight * kld_loss
+        return {
+            "loss": loss,
+            "Reconstruction_Loss": recons_loss.detach(),
+            "KLD": -kld_loss.detach(),
+        }
 
     def compute_kernel(self, x1: Tensor, x2: Tensor) -> Tensor:
         # Convert the tensors into row and column vectors
