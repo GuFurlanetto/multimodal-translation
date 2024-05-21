@@ -220,12 +220,12 @@ class MNISTMultimodal(Dataset):
         # Get MNIST image example
         image = self.image_files[index]
         img_original = cv2.imread(image, cv2.IMREAD_GRAYSCALE)
-        image_final = cv2.resize(img_original, (128, 128)) / 255
+        image_final = cv2.resize(img_original, (128, 128))
 
         # Load audio and resample to 48000 Hz
         waveform, sample_rate = librosa.load(self.audio_files[index], sr=48000)
 
-        # Ensure waveform is 8000 samples long
+        # Ensure waveform is 48000 samples long
         if len(waveform) < 48000:
             pad_width = 48000 - len(waveform)
             waveform = np.pad(waveform, (0, pad_width))
@@ -341,9 +341,9 @@ class VAEDataset(LightningDataModule):
 
 
 if __name__ == "__main__":
-    path = "data/instrument_data"
+    path = "data/mnist_data"
 
-    data = InstrumentDataset(path, "image2audio", "val")
+    data = MNISTMultimodal(path, "image2audio", "val")
 
     for idx in range(data.__len__()):
         image, audio = data.__getitem__(idx)

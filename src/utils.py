@@ -68,6 +68,9 @@ class VAEXperiment(pl.LightningModule):
             target=labels,
         )
 
+        val_loss["mse"] = self.mse(results, labels)
+        val_loss["ssim"] = self.ssim(results, labels)
+
         self.log_dict(
             {f"val_{key}": val.item() for key, val in val_loss.items()}, sync_dist=True
         )
@@ -123,6 +126,10 @@ class VAEXperiment(pl.LightningModule):
             weight_decay=self.params["weight_decay"],
         )
         optims.append(optimizer)
+
+        if not self.params["use_lr_sched"]:
+            return optims
+
         # Check if more than 1 optimizer is required (Used for adversarial training)
         try:
             if self.params["LR_2"] is not None:

@@ -2,31 +2,33 @@ model_params:
   name: 'wae_mmd'
   in_channels: 1
   latent_dim: 128
-  hidden_dims: [32, 64, 128]
+  hidden_dims: [32, 64, 128, 256, 512]
   reg_weight: 1000
   kernel_type: 'rbf'
-  hidden_multiplier: 9
-  last_layer_size: [3, 3]
+  hidden_multiplier: 16
+  last_layer_size: [4, 4]
 
 data_params:
-  data_path: "../../data/mnist_data"
-  mode: "audio2image"
-  image_size: 24
-  sample_rate: 8000
-  n_mels: 24
-  n_fft: 664
+  data_path: "data/mnist_data"
+  mode: "image2audio"
+  image_size: 128
+  sample_rate: 48000
+  n_mels: 128
+  n_fft: 1024
+  hop_lenght: 377
   train_batch_size: 32
   val_batch_size: 32
   patch_size: 32
-  num_workers: 8
+  num_workers: 16
   data_class: MNISTMultimodal
 
 exp_params:
-  LR: 0.00005
-  weight_decay: 0.0
+  LR: 0.0005
+  weight_decay: 0.1
   scheduler_gamma: 0.95
   kld_weight: 0.00025
   manual_seed: 1265
+  use_lr_sched: True
 
 trainer_params:
   gpus: [0]

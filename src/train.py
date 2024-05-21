@@ -3,7 +3,11 @@ from skimage.metrics import structural_similarity as ssim
 from skimage.metrics import mean_squared_error as mse
 from data_handler import VAEDataset
 from pytorch_lightning import Trainer
-from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
+from pytorch_lightning.callbacks import (
+    LearningRateMonitor,
+    ModelCheckpoint,
+    EarlyStopping,
+)
 from pytorch_lightning.loggers import MLFlowLogger
 from model.model_zoo.beta_vae import BetaVAE
 from model.model_zoo.wae_mmd import WAE_MMD
@@ -59,9 +63,10 @@ def train_model(training_arguments):
             ModelCheckpoint(
                 save_top_k=2,
                 dirpath=os.path.join(args.log_dir, "checkpoints"),
-                monitor="Reconstruction_Loss",
+                monitor="val_loss",
                 save_last=True,
             ),
+            EarlyStopping("loss", mode="min", patience=5),
         ],
         strategy=DDPPlugin(find_unused_parameters=False),
         **config["trainer_params"],

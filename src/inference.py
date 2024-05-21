@@ -29,7 +29,7 @@ def process_data(data, mode, image_size, sample_rate_data, n_mels, n_fft):
     if mode == "image2audio":
         for file in sorted(data):
             img_original = cv2.imread(file, cv2.IMREAD_GRAYSCALE)
-            image_final = cv2.resize(img_original, (image_size, image_size)) / 255
+            image_final = cv2.resize(img_original, (image_size, image_size))
 
             yield torch.tensor(image_final, dtype=torch.float32).to(device).unsqueeze(
                 0
