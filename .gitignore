@@ -7,3 +7,6 @@ experiments_logs
 last_model
 mlruns
 results
+best_models
+inf_data
+mixed_vae
