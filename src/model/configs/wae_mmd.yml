@@ -1,40 +1,47 @@
-model_params:
-  name: 'wae_mmd'
-  in_channels: 1
-  latent_dim: 128
-  hidden_dims: [32, 64, 128, 256, 512]
-  reg_weight: 1000
-  kernel_type: 'rbf'
-  hidden_multiplier: 16
-  last_layer_size: [4, 4]
-
 data_params:
-  data_path: "data/mnist_data"
-  mode: "image2audio"
-  image_size: 128
-  sample_rate: 48000
-  n_mels: 128
-  n_fft: 1024
+  data_class: InstrumentDataset
+  data_path: data/instrument_data
   hop_lenght: 377
+  image_size: 128
+  mode: image2audio
+  n_fft: 1024
+  n_mels: 128
+  num_workers: 16
+  patch_size: 32
+  sample_rate: 48000
   train_batch_size: 32
   val_batch_size: 32
-  patch_size: 32
-  num_workers: 16
-  data_class: MNISTMultimodal
 
 exp_params:
-  LR: 0.0005
-  weight_decay: 0.1
-  scheduler_gamma: 0.95
+  LR: 0.00005
   kld_weight: 0.00025
   manual_seed: 1265
-  use_lr_sched: True
-
-trainer_params:
-  gpus: [0]
-  max_epochs: 100
+  scheduler_gamma: 0.95
+  use_lr_sched: true
+  weight_decay: 0.1
 
 logging_params:
-  save_dir: "logs/"
   manual_seed: 1265
-  name: "WaeMMD"
+  name: WaeMMD
+  save_dir: logs/
+
+model_params:
+  hidden_dims:
+  - 32
+  - 64
+  - 128
+  - 256
+  - 512
+  hidden_multiplier: 16
+  in_channels: 1
+  kernel_type: rbf
+  last_layer_size:
+  - 4
+  - 4
+  latent_dim: 128
+  name: wae_mmd
+  reg_weight: 10000
+trainer_params:
+  gpus:
+  - 0
+  max_epochs: 1000

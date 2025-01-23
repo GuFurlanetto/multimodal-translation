@@ -1,6 +1,6 @@
 {
-    "exp_name": "Audio_Learning_rate_experiment",
+    "exp_name": "image2audio_instrument",
     "target_param": "lr",
     "path_on_config": ["exp_params", "LR"],
-    "param_values": [5e-6, 6e-6, 7e-6, 8e-6, 9e-6, 1e-5, 2e-5, 3e-5, 4e-5, 5e-5, 6e-5, 7e-5, 8e-5, 9e-5, 1e-4, 2e-4, 3e-4, 4e-4]
+    "param_values": [5e-5, 6e-5, 7e-5, 8e-5, 9e-5, 1e-4, 2e-4, 3e-4, 4e-4, 5e-4, 6e-4, 7e-4, 8e-4, 9e-4, 1e-3, 2e-3, 3e-3, 4e-3, 5e-3]
 }

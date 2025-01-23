@@ -1,0 +1,6 @@
+{
+    "exp_name": "image2audio_final_test",
+    "target_param": "reg_weight",
+    "path_on_config": ["model_params", "reg_weight"],
+    "param_values": [1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000]
+}

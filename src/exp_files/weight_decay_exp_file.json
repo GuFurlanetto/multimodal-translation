@@ -1,5 +1,5 @@
 {
-    "exp_name": "Audio_Weight_decay_experiment",
+    "exp_name": "image2audio_final_test",
     "target_param": "weight_decay",
     "path_on_config": ["exp_params", "weight_decay"],
     "param_values": [0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1]

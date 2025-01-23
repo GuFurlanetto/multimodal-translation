@@ -1,10 +1,7 @@
-from typing import List, Optional, Sequence, Union, Any, Callable
+from typing import List, Optional, Sequence, Union, Any
 from pytorch_lightning import LightningDataModule
 from torch.utils.data import Dataset, DataLoader
-from torchvision import transforms
 from torchaudio import transforms as ta
-from utils import plot_waveform, plot_spectrogram, process_audio_results
-from utils_io import make_video
 from torch import nn
 import numpy as np
 import torchaudio
@@ -48,40 +45,41 @@ class InstrumentDataset(Dataset):
         # Get instruments image example
         image = self.image_files[index]
         img_original = cv2.imread(image, cv2.IMREAD_GRAYSCALE)
-        image_final = cv2.resize(img_original, (128, 128)) / 255
+        image_final = cv2.resize(img_original, (128, 128))
 
-        # Process audio to the same image size
-        waveform, sample_rate = torchaudio.load(self.audio_files[index])
-        # Standard sample at 24000
-        resampler = torchaudio.transforms.Resample(sample_rate, 240000)
-        waveform = resampler(waveform)
+        # Load audio and resample to 48000 Hz
+        waveform, sample_rate = librosa.load(self.audio_files[index], sr=48000)
 
-        # if Stereo audio, transform it to Mono
-        if waveform.shape[0] == 2:
-            waveform = torch.mean(waveform, dim=0).unsqueeze(0)
+        # waveform = librosa.util.normalize(waveform)
 
-        # To make the audio spectogram be the same size as the image
-        # here we cut or pad the audio when necessary
-        pad = 0
-        if waveform.shape[1] > sample_rate:
-            waveform = waveform[:, :240000]
-        elif waveform.shape[1] < sample_rate:
-            pad = int(((240000 - waveform.shape[1]) / 2))
+        # Ensure waveform is 48000 samples long
+        if len(waveform) < 48000:
+            pad_width = 48000 - len(waveform)
+            waveform = np.pad(waveform, (0, pad_width))
+        elif len(waveform) > 48000:
+            waveform = waveform[:48000]
 
-        # Extract the mel Spectogram with 24 mel banks, it generates a  24x24 spec
-        mel_transfomer = torchaudio.transforms.MelSpectrogram(
-            sample_rate, n_mels=128, n_fft=3750, pad=pad
+        # Compute the Mel spectrogram with 128 mel bands, using a window of 2048 samples
+        mel_spectrogram = librosa.feature.melspectrogram(
+            y=waveform,
+            sr=sample_rate,
+            n_mels=128,
+            n_fft=1024,
+            hop_length=377,
+            norm="slaney",
         )
-        mel_spec = mel_transfomer(waveform)[:, :, :-1]
-        # mel_spec = torch.moveaxis(mel_spec, 0, 2)
+
+        # mel_spectrogram = librosa.util.normalize(mel_spectrogram)
 
         if self.mode == "image2audio":
             return (
                 torch.tensor(image_final, dtype=torch.float32).unsqueeze(0),
-                mel_spec.float(),
+                torch.tensor(mel_spectrogram, dtype=torch.float32).unsqueeze(0),
             )
         else:
-            return mel_spec, torch.tensor(image_final, dtype=torch.float32).unsqueeze(0)
+            return torch.tensor(mel_spectrogram, dtype=torch.float32).unsqueeze(
+                0
+            ), torch.tensor(image_final, dtype=torch.float32).unsqueeze(0)
 
 
 class ImageAudioPairDatset(Dataset):
@@ -335,18 +333,55 @@ class VAEDataset(LightningDataModule):
             self.test_dataset,
             batch_size=self.val_batch_size,
             num_workers=self.num_workers,
-            shuffle=True,
+            shuffle=False,
             pin_memory=self.pin_memory,
         )
 
 
+import shutil
+
+
+def replace_audio_file(examples_path, dataset_path):
+    # Get audio examples
+    audio_files = glob.glob(f"{examples_path}/*.wav")
+    audio_files = {os.path.basename(file)[0]: file for file in audio_files}
+
+    # Get ref list
+    ref_audio = glob.glob(f"{examples_path}/trainingSet/*/*")
+    look_up_names = [os.path.basename(file) for file in ref_audio]
+    number_class = [file.split("/")[-2] for file in ref_audio]
+
+    # replace files
+    for image in glob.glob(f"{dataset_path}/*.jpg"):
+        image_name = os.path.basename(image)
+        image_idx = look_up_names.index(image_name)
+        image_class = number_class[image_idx]
+
+        ref_audio = audio_files[image_class]
+
+        shutil.copyfile(
+            ref_audio, f"{dataset_path}/{image_name.replace('.jpg', '.wav')}"
+        )
+
+
 if __name__ == "__main__":
-    path = "data/mnist_data"
+    path = "data/instrument_data"
 
-    data = MNISTMultimodal(path, "image2audio", "val")
+    data = InstrumentDataset(path, "audio2image", "val")
 
+    max = 0
     for idx in range(data.__len__()):
         image, audio = data.__getitem__(idx)
-        print(idx)
-        print(audio.shape)
+
         print(image.shape)
+
+    print(f"[ INFO ] Max: {max}")
+
+    # splits = ["train", "val", "test"]
+    # data_path = "data/mnist_data/image2audio"
+    # examples_path = "data/mnist_data/examples"
+
+    # for split in splits:
+    #     data_dir = f"{data_path}/{split}"
+
+    #     replace_audio_file(examples_path, data_dir)

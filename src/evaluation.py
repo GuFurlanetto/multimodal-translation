@@ -10,6 +10,7 @@ import os
 from model.model_zoo.image_classification import VITforImageClassification
 from skimage.metrics import structural_similarity as ssim
 from skimage.metrics import mean_squared_error as mse
+from skimage.metrics import peak_signal_noise_ratio as psnr
 from data_handler import VAEDataset
 from utils_io import load_yaml
 from utils import load_model
@@ -31,7 +32,7 @@ def unormalize_batch_of_images(images):
 def eval(args):
     print(f"[ INFO ] Setting up pre training configs ...")
     config_file = load_yaml(args.config_file)
-
+    inference_mode = config_file["data_params"]["mode"]
     # Loading dataset
     print(f"[ INFO ] Loading dataset ...")
     data = VAEDataset(
@@ -54,7 +55,7 @@ def eval(args):
     print("[ INFO ] Model loaded")
 
     # Load image classification model
-    if config_file["data_params"]["mode"] == "audio2image":
+    if inference_mode == "audio2image":
         classification_model = VITforImageClassification()
 
     # Performs evaluation on test data
@@ -78,27 +79,24 @@ def eval(args):
 
         metrics["mse"].extend([mse(img1, img2) for img1, img2 in zip(predicts, target)])
 
-        # Check classification model results
-        # Unormalize images
-        # predictions = unormalize_batch_of_images(predicts)
-        # targets_images = unormalize_batch_of_images(target)
+        # if inference_mode == "audio2image":
+        #     # Check classification model results
+        #     processed_inputs = classification_model.process_images(predicts)
+        #     classification_results = classification_model.run_inference(
+        #         processed_inputs.to(device)
+        #     )
 
-        # processed_inputs = classification_model.process_images(predictions)
-        # classification_results = classification_model.run_inference(
-        #     processed_inputs.to(device)
-        # )
+        #     processed_inputs = classification_model.process_images(target)
+        #     target_classification_results = classification_model.run_inference(
+        #         processed_inputs.to(device)
+        #     )
 
-        # processed_inputs = classification_model.process_images(targets_images)
-        # target_classification_results = classification_model.run_inference(
-        #     processed_inputs.to(device)
-        # )
-
-        # difference_number = np.count_nonzero(
-        #     target_classification_results - classification_results
-        # )
-        # metrics["diff_in_acc"].extend(
-        #     [difference_number / target_classification_results.size]
-        # )
+        #     difference_number = np.count_nonzero(
+        #         target_classification_results - classification_results
+        #     )
+        #     metrics["diff_in_acc"].extend(
+        #         [difference_number / target_classification_results.size]
+        #     )
 
     print("[ INFO ] Evaluation finished")
 

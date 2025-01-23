@@ -10,17 +10,18 @@ model_params:
   last_layer_size: [3, 3]
 
 data_params:
-  data_path: "data/mnist_data"
-  mode: "audio2image"
-  image_size: 24
-  sample_rate: 8000
-  n_mels: 24
-  n_fft: 664
+  data_class: MNISTMultimodal
+  data_path: data/mnist_data
+  hop_lenght: 377
+  image_size: 128
+  mode: image2audio
+  n_fft: 1024
+  n_mels: 128
+  num_workers: 16
+  patch_size: 32
+  sample_rate: 48000
   train_batch_size: 32
   val_batch_size: 32
-  patch_size: 32
-  num_workers: 8
-  data_class: MNISTMultimodal
 
 ------------ VGG ----------------
 model_params:
@@ -57,15 +58,17 @@ model_params:
   hidden_multiplier: 16
   last_layer_size: [4, 4]
 
+
 data_params:
   data_path: "data/instrument_data"
-  mode: "audio2image"
+  hop_lenght: 377
   image_size: 128
-  sample_rate: 240000
+  mode: image2audio
+  n_fft: 1024
   n_mels: 128
-  n_fft: 3750
-  train_batch_size: 16
-  val_batch_size: 16
+  num_workers: 16
   patch_size: 32
-  num_workers: 8
+  sample_rate: 48000
+  train_batch_size: 32
+  val_batch_size: 32
   data_class: InstrumentDataset

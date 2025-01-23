@@ -66,7 +66,7 @@ def train_model(training_arguments):
                 monitor="val_loss",
                 save_last=True,
             ),
-            EarlyStopping("loss", mode="min", patience=5),
+            EarlyStopping("val_loss", mode="min", patience=5),
         ],
         strategy=DDPPlugin(find_unused_parameters=False),
         **config["trainer_params"],

@@ -1,0 +1,6 @@
+{
+    "exp_name": "Image2Audio lr gamma",
+    "target_param": "lr_gamma",
+    "path_on_config": ["exp_params", "scheduler_gamma"],
+    "param_values": [0.95, 0.85, 0.75, 0.65, 0.55, 0.45, 0.35, 0.25, 0.15, 0.1]
+}

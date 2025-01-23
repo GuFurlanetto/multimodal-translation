@@ -1,0 +1,6 @@
+{
+    "exp_name": "image2audio_final_test",
+    "target_param": "kld_weight",
+    "path_on_config": ["exp_params", "kld_weight"],
+    "param_values": [0.00025, 0.0005, 0.00075, 0.001, 0.00125, 0.0015, 0.00175, 0.002]
+}
