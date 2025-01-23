@@ -1,5 +1,0 @@
-1 - Change input processing for audio2image inference script
-
-3 - Train the classification model on Instrument dataset
-
-4 - Retrain both models on both modes
